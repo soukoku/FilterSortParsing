@@ -5,8 +5,7 @@ using System.Linq;
 namespace Soukoku.FilterSortParsing;
 
 /// <summary>
-/// Parses OData-like orderBy expressions into structured <see cref="OrderByClause"/> objects.
-/// Uses span-based parsing for optimal performance with minimal allocations.
+/// Parses OData-like orderBy expressions into <see cref="OrderByClause"/> objects using span-based parsing.
 /// </summary>
 public class OrderByParser
 {
@@ -15,16 +14,10 @@ public class OrderByParser
     /// </summary>
     /// <param name="orderBy">
     /// The orderBy expression to parse. Supports comma-separated fields with optional direction keywords
-    /// (asc, ascending, desc, descending). Returns an empty list if null or whitespace.
+    /// (asc, ascending, desc, descending). Returns empty list if null or whitespace.
     /// </param>
     /// <returns>A list of <see cref="OrderByClause"/> objects representing the parsed sorting criteria.</returns>
     /// <exception cref="ArgumentException">Thrown when an invalid direction keyword is encountered.</exception>
-    /// <example>
-    /// <code>
-    /// var clauses = OrderByParser.Parse("LastName asc, FirstName desc");
-    /// // Returns: [{ PropertyName = "LastName", IsDescending = false }, { PropertyName = "FirstName", IsDescending = true }]
-    /// </code>
-    /// </example>
     public static List<OrderByClause> Parse(string? orderBy)
     {
         if (string.IsNullOrWhiteSpace(orderBy))
@@ -114,26 +107,25 @@ public class OrderByParser
 }
 
 /// <summary>
-/// Represents a single sorting clause specifying a property name and sort direction.
+/// Represents a single sorting clause with property name and direction.
 /// </summary>
 public class OrderByClause
 {
     /// <summary>
-    /// Gets the name of the property to sort by. Supports dot notation for nested properties (e.g., "Address.City").
+    /// Gets the name of the property to sort by. Supports dot notation (e.g., "Address.City").
     /// </summary>
     public string PropertyName { get; }
     
     /// <summary>
-    /// Gets a value indicating whether the sort should be in descending order.
-    /// Returns <c>false</c> for ascending order, <c>true</c> for descending order.
+    /// Gets whether the sort is descending (<c>true</c>) or ascending (<c>false</c>).
     /// </summary>
     public bool IsDescending { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OrderByClause"/> class.
     /// </summary>
-    /// <param name="propertyName">The name of the property to sort by. Cannot be null.</param>
-    /// <param name="isDescending">If set to <c>true</c>, sorts in descending order; otherwise, ascending.</param>
+    /// <param name="propertyName">The name of the property to sort by.</param>
+    /// <param name="isDescending">If <c>true</c>, sorts descending; otherwise, ascending.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="propertyName"/> is null.</exception>
     public OrderByClause(string propertyName, bool isDescending)
     {

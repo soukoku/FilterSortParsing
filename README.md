@@ -6,14 +6,12 @@ A .NET library for parsing and applying OData-like filter and sorting expression
 
 - **Filter Support** - OData-like filter syntax with comparison operators, string functions, and logical operators
 - **Sorting Support** - Multi-field sorting with ascending/descending order
-- **High Performance** - Span-based parsing with minimal memory allocations
 - **Case Insensitive** - Keywords, operators, and property names
-- **Nested Properties** - Full support for dot notation navigation
+- **Nested Properties** - Dot notation navigation
 
 ## Installation
 
 ```xml
-<!-- Add to your .csproj file -->
 <PackageReference Include="Soukoku.FilterSortParsing" Version="*" />
 ```
 
@@ -28,7 +26,7 @@ var people = dbContext.People.AsQueryable();
 // Simple filter
 var adults = people.ApplyFilter("Age ge 18");
 
-// Complex filter with multiple conditions
+// Complex filter
 var result = people.ApplyFilter(
     "(Age ge 25 and Age le 65) and (Address.State eq 'CA' or Address.State eq 'NY')"
 );
@@ -44,12 +42,9 @@ var sorted = people.ApplyOrderBy("LastName");
 
 // Multiple fields with directions
 var sorted = people.ApplyOrderBy("Age desc, LastName asc, FirstName asc");
-
-// Nested properties
-var sorted = people.ApplyOrderBy("Address.State, Address.City, LastName");
 ```
 
-### Chaining Operations
+### Chaining
 ```csharp
 var result = people
     .ApplyFilter("Age ge 25 and IsActive eq true")
@@ -62,71 +57,27 @@ var result = people
 ## Filter Operators
 
 ### Comparison
-- `eq` - Equal
-- `ne` - Not equal
+- `eq`, `ne` - Equal, not equal
 - `gt`, `ge` - Greater than (or equal)
 - `lt`, `le` - Less than (or equal)
 
 ### String Functions
-- `contains` - Contains substring
-- `startswith` - Starts with substring
-- `endswith` - Ends with substring
+- `contains`, `startswith`, `endswith`
 
 ### Logical
-- `and` - Logical AND
-- `or` - Logical OR
-- `not` - Logical NOT
-
-### Grouping
-- `( )` - Parentheses for grouping and precedence control
+- `and`, `or`, `not`
+- `( )` - Grouping and precedence
 
 ## Sorting Syntax
 
-- **Direction keywords**: `asc`, `ascending`, `desc`, `descending`
-- **Multiple fields**: Comma-separated list
-- **Default**: Ascending if no direction specified
-
-## Examples
-
-### Filter Examples
-```csharp
-// Equality
-people.ApplyFilter("Age eq 30")
-
-// Range
-people.ApplyFilter("Age ge 18 and Age le 65")
-
-// String matching
-people.ApplyFilter("Email contains '@gmail.com'")
-
-// Complex logic
-people.ApplyFilter("(Age lt 30 or Age gt 60) and IsActive eq true")
-
-// Negation
-people.ApplyFilter("not (Status eq 'Inactive')")
-
-// Nested properties
-people.ApplyFilter("Address.City eq 'Seattle' and Address.State eq 'WA'")
-```
-
-### Sort Examples
-```csharp
-// Single field
-people.ApplyOrderBy("CreatedDate desc")
-
-// Multiple fields
-people.ApplyOrderBy("Department asc, Salary desc, LastName asc")
-
-// Nested properties
-people.ApplyOrderBy("Company.Name, Department, LastName")
-```
+- **Direction**: `asc`, `ascending`, `desc`, `descending`
+- **Multiple fields**: Comma-separated
+- **Default**: Ascending
 
 ## Documentation
 
-Comprehensive documentation is available:
-
-- **[Filter Documentation](FILTER.md)** - Complete filter syntax, operators, and examples
-- **[OrderBy Documentation](ORDERBY.md)** - Complete sorting syntax and usage
+- **[Filter Documentation](FILTER.md)** - Complete filter syntax and examples
+- **[OrderBy Documentation](ORDERBY.md)** - Complete sorting syntax
 
 ## Compatibility
 
