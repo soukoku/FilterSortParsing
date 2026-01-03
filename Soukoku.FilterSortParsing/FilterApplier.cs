@@ -49,16 +49,11 @@ internal static class FilterApplier
     {
         // Get property expression
         Expression propertyAccess = parameter;
-        var propertyNames = comparison.PropertyName.Split('.');
+        var propertyInfos = ReflectionCache.GetPropertyPath(entityType, comparison.PropertyName);
 
         Type currentType = entityType;
-        foreach (var propName in propertyNames)
+        foreach (var property in propertyInfos)
         {
-            var property = currentType.GetProperty(propName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-            if (property == null)
-            {
-                throw new ArgumentException($"Property '{propName}' not found on type '{currentType.Name}'.");
-            }
             propertyAccess = Expression.Property(propertyAccess, property);
             currentType = property.PropertyType;
         }

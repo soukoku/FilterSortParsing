@@ -111,7 +111,7 @@ internal class FilterParser
         var left = ParseLogicalAnd();
 
         while (CurrentToken?.Type == FilterTokenType.LogicalOperator &&
-               CurrentToken.Value == "or")
+               string.Equals(CurrentToken.Value, "or", StringComparison.OrdinalIgnoreCase))
         {
             Consume(); // Consume 'or'
             var right = ParseLogicalAnd();
@@ -126,7 +126,7 @@ internal class FilterParser
         var left = ParseUnary();
 
         while (CurrentToken?.Type == FilterTokenType.LogicalOperator &&
-               CurrentToken.Value == "and")
+               string.Equals(CurrentToken.Value, "and", StringComparison.OrdinalIgnoreCase))
         {
             Consume(); // Consume 'and'
             var right = ParseUnary();
@@ -139,7 +139,7 @@ internal class FilterParser
     private FilterExpression ParseUnary()
     {
         if (CurrentToken?.Type == FilterTokenType.LogicalOperator &&
-            CurrentToken.Value == "not")
+            string.Equals(CurrentToken.Value, "not", StringComparison.OrdinalIgnoreCase))
         {
             Consume(); // Consume 'not'
             var inner = ParsePrimary();
@@ -184,6 +184,8 @@ internal class FilterParser
         }
 
         string operatorName = Consume().Value;
+        // normalize operator to lower-case so downstream switch comparisons are case-sensitive
+        operatorName = operatorName.ToLowerInvariant();
 
         if (CurrentToken?.Type != FilterTokenType.Value && CurrentToken?.Type != FilterTokenType.Property)
         {

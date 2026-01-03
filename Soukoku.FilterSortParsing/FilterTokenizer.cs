@@ -97,16 +97,14 @@ internal ref struct FilterTokenizer
                 continue;
             }
 
-            // Determine token type based on word
-            var wordLower = word.ToLowerInvariant();
-
-            if (IsLogicalOperator(wordLower))
+            // Determine token type based on word (use case-insensitive checks)
+            if (IsLogicalOperator(word))
             {
-                tokens.Add(new FilterToken(FilterTokenType.LogicalOperator, wordLower));
+                tokens.Add(new FilterToken(FilterTokenType.LogicalOperator, word));
             }
-            else if (IsOperator(wordLower))
+            else if (IsOperator(word))
             {
-                tokens.Add(new FilterToken(FilterTokenType.Operator, wordLower));
+                tokens.Add(new FilterToken(FilterTokenType.Operator, word));
             }
             else if (IsValue(word))
             {
@@ -195,15 +193,22 @@ internal ref struct FilterTokenizer
 
     private static bool IsLogicalOperator(string word)
     {
-        return word == "and" || word == "or" || word == "not";
+        return string.Equals(word, "and", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(word, "or", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(word, "not", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsOperator(string word)
     {
-        return word == "eq" || word == "ne" || 
-               word == "gt" || word == "ge" || 
-               word == "lt" || word == "le" ||
-               word == "contains" || word == "startswith" || word == "endswith";
+        return string.Equals(word, "eq", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(word, "ne", StringComparison.OrdinalIgnoreCase) || 
+               string.Equals(word, "gt", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(word, "ge", StringComparison.OrdinalIgnoreCase) || 
+               string.Equals(word, "lt", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(word, "le", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(word, "contains", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(word, "startswith", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(word, "endswith", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsValue(string word)

@@ -71,18 +71,10 @@ internal static class OrderByApplier
         var parameter = Expression.Parameter(typeof(T), "x");
         Expression propertyAccess = parameter;
 
-        // Support nested properties (e.g., "Address.City")
-        var propertyNames = propertyName.Split('.');
+        var propertyInfos = ReflectionCache.GetPropertyPath(typeof(T), propertyName);
 
-        foreach (var name in propertyNames)
+        foreach (var property in propertyInfos)
         {
-            var property = propertyAccess.Type.GetProperty(name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-
-            if (property == null)
-            {
-                throw new ArgumentException($"Property '{name}' not found on type '{propertyAccess.Type.Name}'.");
-            }
-
             propertyAccess = Expression.Property(propertyAccess, property);
         }
 
@@ -94,10 +86,7 @@ internal static class OrderByApplier
         var sourceType = typeof(T);
         var propertyType = keySelector.ReturnType;
 
-        var method = typeof(Queryable)
-            .GetMethods()
-            .First(m => m.Name == methodName && m.GetParameters().Length == 2)
-            .MakeGenericMethod(sourceType, propertyType);
+        var method = ReflectionCache.GetQueryableMethod(methodName, sourceType, propertyType);
 
         var result = method.Invoke(null, new object[] { source, keySelector });
         return (IOrderedQueryable<T>?)result;
