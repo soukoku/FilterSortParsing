@@ -14,7 +14,7 @@ A .NET library for parsing and applying OData-like filter and sorting expression
 
 ```xml
 <!-- Add to your .csproj file -->
-<PackageReference Include="Soukoku.FilterSortParsing" Version="1.0.0" />
+<PackageReference Include="Soukoku.FilterSortParsing" Version="*" />
 ```
 
 ## Quick Start
