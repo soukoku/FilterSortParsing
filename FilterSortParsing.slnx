@@ -4,6 +4,7 @@
     <File Path="Build.cmd" />
     <File Path="Directory.Build.props" />
     <File Path="FILTER.md" />
+    <File Path="LICENSE.txt" />
     <File Path="ORDERBY.md" />
     <File Path="README.md" />
   </Folder>
