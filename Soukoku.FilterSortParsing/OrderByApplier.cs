@@ -19,14 +19,13 @@ internal static class OrderByApplier
             return source;
         }
 
-        IOrderedQueryable<T> orderedQuery = null;
+        IOrderedQueryable<T>? orderedQuery = null;
 
         for (int i = 0; i < clauses.Count; i++)
         {
             var clause = clauses[i];
-            var isFirstClause = i == 0;
 
-            if (isFirstClause)
+            if (orderedQuery == null)
             {
                 orderedQuery = clause.IsDescending
                     ? ApplyOrderByDescending(source, clause.PropertyName)
@@ -40,28 +39,28 @@ internal static class OrderByApplier
             }
         }
 
-        return orderedQuery;
+        return orderedQuery ?? source;
     }
 
-    private static IOrderedQueryable<T> ApplyOrderByAscending<T>(IQueryable<T> source, string propertyName)
+    private static IOrderedQueryable<T>? ApplyOrderByAscending<T>(IQueryable<T> source, string propertyName)
     {
         var expression = CreatePropertyExpression<T>(propertyName);
         return CallOrderMethod(source, "OrderBy", expression);
     }
 
-    private static IOrderedQueryable<T> ApplyOrderByDescending<T>(IQueryable<T> source, string propertyName)
+    private static IOrderedQueryable<T>? ApplyOrderByDescending<T>(IQueryable<T> source, string propertyName)
     {
         var expression = CreatePropertyExpression<T>(propertyName);
         return CallOrderMethod(source, "OrderByDescending", expression);
     }
 
-    private static IOrderedQueryable<T> ApplyThenByAscending<T>(IOrderedQueryable<T> source, string propertyName)
+    private static IOrderedQueryable<T>? ApplyThenByAscending<T>(IOrderedQueryable<T> source, string propertyName)
     {
         var expression = CreatePropertyExpression<T>(propertyName);
         return CallOrderMethod(source, "ThenBy", expression);
     }
 
-    private static IOrderedQueryable<T> ApplyThenByDescending<T>(IOrderedQueryable<T> source, string propertyName)
+    private static IOrderedQueryable<T>? ApplyThenByDescending<T>(IOrderedQueryable<T> source, string propertyName)
     {
         var expression = CreatePropertyExpression<T>(propertyName);
         return CallOrderMethod(source, "ThenByDescending", expression);
@@ -74,11 +73,11 @@ internal static class OrderByApplier
 
         // Support nested properties (e.g., "Address.City")
         var propertyNames = propertyName.Split('.');
-        
+
         foreach (var name in propertyNames)
         {
             var property = propertyAccess.Type.GetProperty(name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-            
+
             if (property == null)
             {
                 throw new ArgumentException($"Property '{name}' not found on type '{propertyAccess.Type.Name}'.");
@@ -90,7 +89,7 @@ internal static class OrderByApplier
         return Expression.Lambda(propertyAccess, parameter);
     }
 
-    private static IOrderedQueryable<T> CallOrderMethod<T>(IQueryable<T> source, string methodName, LambdaExpression keySelector)
+    private static IOrderedQueryable<T>? CallOrderMethod<T>(IQueryable<T> source, string methodName, LambdaExpression keySelector)
     {
         var sourceType = typeof(T);
         var propertyType = keySelector.ReturnType;
@@ -101,6 +100,6 @@ internal static class OrderByApplier
             .MakeGenericMethod(sourceType, propertyType);
 
         var result = method.Invoke(null, new object[] { source, keySelector });
-        return (IOrderedQueryable<T>)result;
+        return (IOrderedQueryable<T>?)result;
     }
 }

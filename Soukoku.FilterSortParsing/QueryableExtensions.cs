@@ -32,7 +32,7 @@ public static class QueryableExtensions
     /// var johns = people.ApplyFilter("FirstName startswith 'John'");
     /// </code>
     /// </example>
-    public static IQueryable<T> ApplyFilter<T>(this IQueryable<T> source, string filter)
+    public static IQueryable<T> ApplyFilter<T>(this IQueryable<T> source, string? filter)
     {
         if (string.IsNullOrWhiteSpace(filter))
         {
@@ -67,14 +67,14 @@ public static class QueryableExtensions
     /// var sorted = people.ApplyOrderBy("Address.State, Address.City");
     /// </code>
     /// </example>
-    public static IQueryable<T> ApplyOrderBy<T>(this IQueryable<T> source, string orderBy)
+    public static IQueryable<T> ApplyOrderBy<T>(this IQueryable<T> source, string? orderBy)
     {
         if (string.IsNullOrWhiteSpace(orderBy))
         {
             return source;
         }
         
-        var clauses = OrderByParser.Parse(orderBy);
+        var clauses = OrderByParser.Parse(orderBy!);
         return OrderByApplier.ApplyOrderBy(source, clauses);
     }
 }

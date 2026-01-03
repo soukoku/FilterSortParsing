@@ -8,7 +8,7 @@ namespace Soukoku.FilterSortParsing;
 
 internal static class FilterApplier
 {
-    public static IQueryable<T> ApplyFilter<T>(IQueryable<T> source, FilterExpression filterExpression)
+    public static IQueryable<T> ApplyFilter<T>(IQueryable<T> source, FilterExpression? filterExpression)
     {
         if (source == null)
         {
@@ -107,7 +107,7 @@ internal static class FilterApplier
         return Expression.Equal(propertyAccess, constant);
     }
 
-    private static Expression BuildComparisonExpression(Expression propertyAccess, string value, Type propertyType, 
+    private static Expression BuildComparisonExpression(Expression propertyAccess, string value, Type propertyType,
         Func<Expression, Expression, BinaryExpression> comparisonFactory)
     {
         var constantValue = ConvertValue(value, propertyType);
@@ -123,6 +123,10 @@ internal static class FilterApplier
         }
 
         var method = typeof(string).GetMethod(methodName, new[] { typeof(string) });
+        if (method == null)
+        {
+            throw new InvalidOperationException($"Method '{methodName}' not found on type 'string'.");
+        }
         var constant = Expression.Constant(value, typeof(string));
 
         // Handle null check: property != null && property.Method(value)
@@ -155,7 +159,7 @@ internal static class FilterApplier
         return Expression.Not(inner);
     }
 
-    private static object ConvertValue(string value, Type targetType)
+    private static object? ConvertValue(string value, Type targetType)
     {
         // Handle null
         if (value.Equals("null", StringComparison.OrdinalIgnoreCase))

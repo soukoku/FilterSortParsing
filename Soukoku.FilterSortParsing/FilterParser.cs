@@ -67,14 +67,14 @@ internal class FilterParser
     private List<FilterToken> _tokens;
     private int _position;
 
-    public static FilterExpression Parse(string filter)
+    public static FilterExpression? Parse(string? filter)
     {
         if (string.IsNullOrWhiteSpace(filter))
         {
             return null;
         }
 
-        var tokens = FilterTokenizer.Tokenize(filter);
+        var tokens = FilterTokenizer.Tokenize(filter!);
         if (tokens.Count == 0)
         {
             return null;
@@ -90,7 +90,7 @@ internal class FilterParser
         _position = 0;
     }
 
-    private FilterToken CurrentToken => _position < _tokens.Count ? _tokens[_position] : null;
+    private FilterToken? CurrentToken => _position < _tokens.Count ? _tokens[_position] : null;
 
     private FilterToken Consume()
     {
@@ -110,7 +110,7 @@ internal class FilterParser
     {
         var left = ParseLogicalAnd();
 
-        while (CurrentToken?.Type == FilterTokenType.LogicalOperator && 
+        while (CurrentToken?.Type == FilterTokenType.LogicalOperator &&
                CurrentToken.Value == "or")
         {
             Consume(); // Consume 'or'
@@ -125,7 +125,7 @@ internal class FilterParser
     {
         var left = ParseUnary();
 
-        while (CurrentToken?.Type == FilterTokenType.LogicalOperator && 
+        while (CurrentToken?.Type == FilterTokenType.LogicalOperator &&
                CurrentToken.Value == "and")
         {
             Consume(); // Consume 'and'
@@ -138,7 +138,7 @@ internal class FilterParser
 
     private FilterExpression ParseUnary()
     {
-        if (CurrentToken?.Type == FilterTokenType.LogicalOperator && 
+        if (CurrentToken?.Type == FilterTokenType.LogicalOperator &&
             CurrentToken.Value == "not")
         {
             Consume(); // Consume 'not'
@@ -156,7 +156,7 @@ internal class FilterParser
         {
             Consume(); // Consume '('
             var expr = ParseExpression();
-            
+
             if (CurrentToken?.Type != FilterTokenType.RightParenthesis)
             {
                 throw new InvalidOperationException("Expected closing parenthesis ')'.");

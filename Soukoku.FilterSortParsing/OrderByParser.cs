@@ -25,7 +25,7 @@ public class OrderByParser
     /// // Returns: [{ PropertyName = "LastName", IsDescending = false }, { PropertyName = "FirstName", IsDescending = true }]
     /// </code>
     /// </example>
-    public static List<OrderByClause> Parse(string orderBy)
+    public static List<OrderByClause> Parse(string? orderBy)
     {
         if (string.IsNullOrWhiteSpace(orderBy))
         {
