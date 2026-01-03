@@ -7,7 +7,7 @@ namespace Soukoku.FilterSortParsing;
 /// <summary>
 /// Parses OData-like orderBy expressions into <see cref="OrderByClause"/> objects using span-based parsing.
 /// </summary>
-public class OrderByParser
+internal class OrderByParser
 {
     /// <summary>
     /// Parses an OData-like orderBy expression string into a list of <see cref="OrderByClause"/> objects.
