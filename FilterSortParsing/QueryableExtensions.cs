@@ -10,7 +10,9 @@ public static class QueryableExtensions
         {
             return source;
         }
-        return source;
+        
+        var filterExpression = FilterParser.Parse(filter);
+        return FilterApplier.ApplyFilter(source, filterExpression);
     }
 
 
