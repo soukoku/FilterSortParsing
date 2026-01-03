@@ -20,6 +20,8 @@ public static class QueryableExtensions
         {
             return source;
         }
-        return source;
+        
+        var clauses = OrderByParser.Parse(orderBy);
+        return OrderByApplier.ApplyOrderBy(source, clauses);
     }
 }

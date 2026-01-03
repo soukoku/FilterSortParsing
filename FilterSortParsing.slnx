@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="FilterSortParsing.Tests/FilterSortParsing.Tests.csproj" />
   <Project Path="FilterSortParsing/FilterSortParsing.csproj" />
 </Solution>
