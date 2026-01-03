@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace FilterSortParsing;
+namespace Soukoku.FilterSortParsing;
 
 internal enum FilterExpressionType
 {

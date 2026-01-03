@@ -1,4 +1,12 @@
 <Solution>
-  <Project Path="FilterSortParsing.Tests/FilterSortParsing.Tests.csproj" />
-  <Project Path="FilterSortParsing/FilterSortParsing.csproj" />
+  <Folder Name="/_common/">
+    <File Path=".gitignore" />
+    <File Path="Build.cmd" />
+    <File Path="Directory.Build.props" />
+    <File Path="FILTER.md" />
+    <File Path="ORDERBY.md" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="Soukoku.FilterSortParsing.Tests/Soukoku.FilterSortParsing.Tests.csproj" />
+  <Project Path="Soukoku.FilterSortParsing/Soukoku.FilterSortParsing.csproj" />
 </Solution>

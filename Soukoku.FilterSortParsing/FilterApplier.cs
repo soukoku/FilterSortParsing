@@ -4,7 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace FilterSortParsing;
+namespace Soukoku.FilterSortParsing;
 
 internal static class FilterApplier
 {

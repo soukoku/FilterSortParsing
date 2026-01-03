@@ -1,4 +1,4 @@
-namespace FilterSortParsing.Tests;
+namespace Soukoku.FilterSortParsing.Tests;
 
 public class Person
 {

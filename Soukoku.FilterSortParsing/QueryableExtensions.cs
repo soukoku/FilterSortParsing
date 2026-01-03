@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 
-namespace FilterSortParsing;
+namespace Soukoku.FilterSortParsing;
 
 public static class QueryableExtensions
 {

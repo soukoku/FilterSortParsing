@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FilterSortParsing\FilterSortParsing.csproj" />
+    <ProjectReference Include="..\Soukoku.FilterSortParsing\Soukoku.FilterSortParsing.csproj" />
   </ItemGroup>
 
 </Project>

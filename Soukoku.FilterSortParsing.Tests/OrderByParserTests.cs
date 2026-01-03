@@ -1,7 +1,7 @@
 using System;
 using Xunit;
 
-namespace FilterSortParsing.Tests;
+namespace Soukoku.FilterSortParsing.Tests;
 
 public class OrderByParserTests
 {
