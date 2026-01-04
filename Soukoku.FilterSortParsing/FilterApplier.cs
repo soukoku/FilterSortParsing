@@ -2,7 +2,6 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace Soukoku.FilterSortParsing;
 
@@ -117,11 +116,7 @@ internal static class FilterApplier
             throw new InvalidOperationException($"String operation '{methodName}' can only be applied to string properties.");
         }
 
-        var method = typeof(string).GetMethod(methodName, new[] { typeof(string) });
-        if (method == null)
-        {
-            throw new InvalidOperationException($"Method '{methodName}' not found on type 'string'.");
-        }
+        var method = ReflectionCache.GetStringMethod(methodName);
         var constant = Expression.Constant(value, typeof(string));
 
         // Handle null check: property != null && property.Method(value)

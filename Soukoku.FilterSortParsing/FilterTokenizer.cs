@@ -53,7 +53,8 @@ internal ref struct FilterTokenizer
 
     private List<FilterToken> TokenizeInternal()
     {
-        var tokens = new List<FilterToken>();
+        // Pre-allocate based on estimated tokens per input length
+        var tokens = new List<FilterToken>(_span.Length / 4);
 
         while (_position < _span.Length)
         {
@@ -155,7 +156,36 @@ internal ref struct FilterTokenizer
     {
         char quote = _span[_position];
         _position++; // Skip opening quote
+        int start = _position;
+        
+        // Fast path: scan for end quote or escape character
+        while (_position < _span.Length)
+        {
+            char c = _span[_position];
+            if (c == '\\')
+            {
+                // Has escapes, use StringBuilder path
+                _position = start - 1; // Reset to position after opening quote
+                return ReadQuotedStringWithEscapes(quote);
+            }
+            if (c == quote)
+            {
+                // Fast path: no escapes, just slice
+                var result = _span.Slice(start, _position - start).ToString();
+                _position++; // Skip closing quote
+                return result;
+            }
+            _position++;
+        }
+        
+        // Unterminated string, return what we have
+        return _span.Slice(start, _position - start).ToString();
+    }
 
+    private string ReadQuotedStringWithEscapes(char quote)
+    {
+        _position++; // Skip opening quote (we're called with position at quote)
+        
         var sb = new StringBuilder();
         bool escaped = false;
 
