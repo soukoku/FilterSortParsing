@@ -7,7 +7,8 @@ internal enum FilterExpressionType
 {
     Comparison,
     Logical,
-    Not
+    Not,
+    Function
 }
 
 internal abstract class FilterExpression
@@ -60,6 +61,21 @@ internal class NotExpression : FilterExpression
     }
 
     public override string ToString() => $"not ({Inner})";
+}
+
+internal class FunctionExpression : FilterExpression
+{
+    public string FunctionName { get; }
+    public List<string> Arguments { get; }
+
+    public FunctionExpression(string functionName, List<string> arguments)
+    {
+        Type = FilterExpressionType.Function;
+        FunctionName = functionName;
+        Arguments = arguments;
+    }
+
+    public override string ToString() => $"{FunctionName}({string.Join(", ", Arguments)})";
 }
 
 internal class FilterParser
@@ -151,7 +167,7 @@ internal class FilterParser
 
     private FilterExpression ParsePrimary()
     {
-        // Handle parentheses
+        // Handle parentheses for grouping
         if (CurrentToken?.Type == FilterTokenType.LeftParenthesis)
         {
             Consume(); // Consume '('
@@ -163,6 +179,15 @@ internal class FilterParser
             }
             Consume(); // Consume ')'
             return expr;
+        }
+
+        // Check if this is a function call: functionName(arg1, arg2, ...)
+        // Function names can be either Operator tokens (contains, startswith, endswith) or Property tokens
+        if ((CurrentToken?.Type == FilterTokenType.Operator || CurrentToken?.Type == FilterTokenType.Property) && 
+            _position + 1 < _tokens.Count && 
+            _tokens[_position + 1].Type == FilterTokenType.LeftParenthesis)
+        {
+            return ParseFunctionCall();
         }
 
         // Parse comparison: property operator value
@@ -195,5 +220,62 @@ internal class FilterParser
         string value = Consume().Value;
 
         return new ComparisonExpression(property, operatorName, value);
+    }
+
+    private FilterExpression ParseFunctionCall()
+    {
+        // Consume function name
+        string functionName = Consume().Value.ToLowerInvariant();
+
+        // Consume '('
+        if (CurrentToken?.Type != FilterTokenType.LeftParenthesis)
+        {
+            throw new InvalidOperationException($"Expected '(' after function name '{functionName}'.");
+        }
+        Consume();
+
+        // Parse arguments
+        var arguments = new List<string>();
+
+        // Check for empty parameter list
+        if (CurrentToken?.Type == FilterTokenType.RightParenthesis)
+        {
+            Consume(); // Consume ')'
+            return new FunctionExpression(functionName, arguments);
+        }
+
+        // Parse first argument
+        if (CurrentToken?.Type == FilterTokenType.Property || CurrentToken?.Type == FilterTokenType.Value)
+        {
+            arguments.Add(Consume().Value);
+        }
+        else
+        {
+            throw new InvalidOperationException($"Expected argument in function '{functionName}', but got: {CurrentToken?.Value ?? "end of expression"}");
+        }
+
+        // Parse remaining arguments
+        while (CurrentToken?.Type == FilterTokenType.Comma)
+        {
+            Consume(); // Consume ','
+
+            if (CurrentToken?.Type == FilterTokenType.Property || CurrentToken?.Type == FilterTokenType.Value)
+            {
+                arguments.Add(Consume().Value);
+            }
+            else
+            {
+                throw new InvalidOperationException($"Expected argument after comma in function '{functionName}', but got: {CurrentToken?.Value ?? "end of expression"}");
+            }
+        }
+
+        // Consume ')'
+        if (CurrentToken?.Type != FilterTokenType.RightParenthesis)
+        {
+            throw new InvalidOperationException($"Expected ')' after function arguments in '{functionName}'.");
+        }
+        Consume();
+
+        return new FunctionExpression(functionName, arguments);
     }
 }

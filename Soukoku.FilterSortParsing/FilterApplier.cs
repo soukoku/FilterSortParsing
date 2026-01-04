@@ -39,6 +39,9 @@ internal static class FilterApplier
             case FilterExpressionType.Not:
                 return BuildNotExpression((NotExpression)filterExpression, parameter, entityType);
 
+            case FilterExpressionType.Function:
+                return BuildFunctionExpression((FunctionExpression)filterExpression, parameter, entityType);
+
             default:
                 throw new NotSupportedException($"Expression type {filterExpression.Type} is not supported.");
         }
@@ -147,6 +150,51 @@ internal static class FilterApplier
     {
         var inner = BuildExpression(notExpr.Inner, parameter, entityType);
         return Expression.Not(inner);
+    }
+
+    private static Expression BuildFunctionExpression(FunctionExpression funcExpr, ParameterExpression parameter, Type entityType)
+    {
+        // OData function call syntax: functionName(property, value)
+        // Supported functions: contains, startswith, endswith
+        
+        if (funcExpr.Arguments.Count != 2)
+        {
+            throw new InvalidOperationException($"Function '{funcExpr.FunctionName}' expects exactly 2 arguments, but got {funcExpr.Arguments.Count}.");
+        }
+
+        string propertyName = funcExpr.Arguments[0];
+        string value = funcExpr.Arguments[1];
+
+        // Build property access expression
+        Expression propertyAccess = parameter;
+        var propertyInfos = ReflectionCache.GetPropertyPath(entityType, propertyName);
+
+        foreach (var property in propertyInfos)
+        {
+            propertyAccess = Expression.Property(propertyAccess, property);
+        }
+
+        // Validate it's a string property
+        if (propertyAccess.Type != typeof(string))
+        {
+            throw new InvalidOperationException($"Function '{funcExpr.FunctionName}' can only be applied to string properties.");
+        }
+
+        // Build method call based on function name
+        switch (funcExpr.FunctionName)
+        {
+            case "contains":
+                return BuildStringMethodExpression(propertyAccess, value, "Contains");
+
+            case "startswith":
+                return BuildStringMethodExpression(propertyAccess, value, "StartsWith");
+
+            case "endswith":
+                return BuildStringMethodExpression(propertyAccess, value, "EndsWith");
+
+            default:
+                throw new NotSupportedException($"Function '{funcExpr.FunctionName}' is not supported.");
+        }
     }
 
     private static object? ConvertValue(string value, Type targetType)

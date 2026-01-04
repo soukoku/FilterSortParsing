@@ -489,4 +489,223 @@ public class ApplyFilterTests
     }
 
     #endregion
+
+    #region OData Function Call Syntax
+
+    [Fact]
+    public void ApplyFilter_FunctionSyntax_Contains_FiltersCorrectly()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter("contains(FirstName, 'oh')").ToList();
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal("John", result[0].FirstName);
+    }
+
+    [Fact]
+    public void ApplyFilter_FunctionSyntax_StartsWith_FiltersCorrectly()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter("startswith(FirstName, 'J')").ToList();
+
+        // Assert
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, p => p.FirstName == "John");
+        Assert.Contains(result, p => p.FirstName == "Jane");
+    }
+
+    [Fact]
+    public void ApplyFilter_FunctionSyntax_EndsWith_FiltersCorrectly()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter("endswith(LastName, 'son')").ToList();
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal("Johnson", result[0].LastName);
+    }
+
+    [Fact]
+    public void ApplyFilter_FunctionSyntax_NestedProperty_FiltersCorrectly()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter("contains(Address.City, 'York')").ToList();
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal("New York", result[0].Address.City);
+    }
+
+    [Fact]
+    public void ApplyFilter_FunctionSyntax_WithLogicalOperators()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter("startswith(FirstName, 'J') and Age gt 25").ToList();
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal("John", result[0].FirstName);
+        Assert.Equal(30, result[0].Age);
+    }
+
+    [Fact]
+    public void ApplyFilter_FunctionSyntax_CaseInsensitive()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var resultLower = data.ApplyFilter("contains(FirstName, 'oh')").ToList();
+        var resultUpper = data.ApplyFilter("CONTAINS(FirstName, 'oh')").ToList();
+        var resultMixed = data.ApplyFilter("Contains(FirstName, 'oh')").ToList();
+
+        // Assert
+        Assert.Single(resultLower);
+        Assert.Single(resultUpper);
+        Assert.Single(resultMixed);
+    }
+
+    [Fact]
+    public void ApplyFilter_MixedSyntax_InfixAndFunction()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act - Using both infix (startswith) and function syntax (contains)
+        var result = data.ApplyFilter("FirstName startswith 'J' and contains(LastName, 'oe')").ToList();
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal("John", result[0].FirstName);
+        Assert.Equal("Doe", result[0].LastName);
+    }
+
+    [Fact]
+    public void ApplyFilter_FunctionSyntax_WithNot_Contains()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter("not contains(FirstName, 'oh')").ToList();
+
+        // Assert
+        Assert.Equal(4, result.Count);
+        Assert.All(result, p => Assert.NotEqual("John", p.FirstName));
+    }
+
+    [Fact]
+    public void ApplyFilter_FunctionSyntax_WithNot_StartsWith()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter("not startswith(FirstName, 'J')").ToList();
+
+        // Assert
+        Assert.Equal(3, result.Count);
+        Assert.DoesNotContain(result, p => p.FirstName == "John");
+        Assert.DoesNotContain(result, p => p.FirstName == "Jane");
+    }
+
+    [Fact]
+    public void ApplyFilter_FunctionSyntax_WithNot_EndsWith()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter("not endswith(LastName, 'son')").ToList();
+
+        // Assert
+        Assert.Equal(4, result.Count);
+        Assert.DoesNotContain(result, p => p.LastName == "Johnson");
+    }
+
+    [Fact]
+    public void ApplyFilter_FunctionSyntax_NotWithParentheses()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act - Find people whose FirstName does NOT contain 'oh' (which only John has)
+        var result = data.ApplyFilter("not contains(FirstName, 'oh')").ToList();
+
+        // Assert
+        // John - contains 'oh' -> excluded
+        // Jane - does NOT contain 'oh' -> included
+        // Bob - does NOT contain 'oh' -> included
+        // Alice - does NOT contain 'oh' -> included
+        // Charlie - does NOT contain 'oh' -> included
+        Assert.Equal(4, result.Count);
+        Assert.DoesNotContain(result, p => p.FirstName == "John");
+        Assert.Contains(result, p => p.FirstName == "Jane");
+        Assert.Contains(result, p => p.FirstName == "Bob");
+        Assert.Contains(result, p => p.FirstName == "Alice");
+        Assert.Contains(result, p => p.FirstName == "Charlie");
+    }
+
+    [Fact]
+    public void ApplyFilter_FunctionSyntax_NotWithAnd()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter("not contains(FirstName, 'oh') and Age gt 25").ToList();
+
+        // Assert
+        Assert.Equal(3, result.Count);
+        Assert.Contains(result, p => p.FirstName == "Bob");
+        Assert.Contains(result, p => p.FirstName == "Alice");
+        Assert.Contains(result, p => p.FirstName == "Charlie");
+    }
+
+    [Fact]
+    public void ApplyFilter_FunctionSyntax_ComplexNotExpression()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act - Not (startswith 'J' and contains 'oh')
+        var result = data.ApplyFilter("not (startswith(FirstName, 'J') and contains(FirstName, 'oh'))").ToList();
+
+        // Assert
+        Assert.Equal(4, result.Count);
+        Assert.DoesNotContain(result, p => p.FirstName == "John"); // Only John matches both conditions
+    }
+
+    [Fact]
+    public void ApplyFilter_FunctionSyntax_MixedNotWithInfixAndFunction()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act - Not using function syntax combined with infix operator
+        var result = data.ApplyFilter("not contains(FirstName, 'oh') and LastName startswith 'B'").ToList();
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal("Charlie", result[0].FirstName);
+        Assert.Equal("Brown", result[0].LastName);
+    }
+
+    #endregion
 }

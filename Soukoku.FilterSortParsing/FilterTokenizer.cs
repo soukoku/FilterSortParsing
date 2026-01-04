@@ -12,6 +12,7 @@ internal enum FilterTokenType
     LogicalOperator,
     LeftParenthesis,
     RightParenthesis,
+    Comma,
     End
 }
 
@@ -82,6 +83,14 @@ internal ref struct FilterTokenizer
                 continue;
             }
 
+            // Check for comma
+            if (current == ',')
+            {
+                tokens.Add(new FilterToken(FilterTokenType.Comma, ","));
+                _position++;
+                continue;
+            }
+
             // Check for quoted string value
             if (current == '\'' || current == '"')
             {
@@ -136,7 +145,7 @@ internal ref struct FilterTokenizer
         {
             char c = _span[_position];
 
-            if (char.IsWhiteSpace(c) || c == '(' || c == ')')
+            if (char.IsWhiteSpace(c) || c == '(' || c == ')' || c == ',')
             {
                 break;
             }
