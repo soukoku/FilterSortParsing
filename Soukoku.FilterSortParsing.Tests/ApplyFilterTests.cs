@@ -645,20 +645,17 @@ public class ApplyFilterTests
         // Arrange
         var data = GetTestData();
 
-        // Act - Find people whose FirstName does NOT contain 'oh' (which only John has)
-        var result = data.ApplyFilter("not contains(FirstName, 'oh')").ToList();
+        // Act - NOT with grouped OR condition using function syntax
+        var result = data.ApplyFilter("not (contains(FirstName, 'o') or startswith(FirstName, 'A'))").ToList();
 
         // Assert
-        // John - contains 'oh' -> excluded
-        // Jane - does NOT contain 'oh' -> included
-        // Bob - does NOT contain 'oh' -> included
-        // Alice - does NOT contain 'oh' -> included
-        // Charlie - does NOT contain 'oh' -> included
-        Assert.Equal(4, result.Count);
-        Assert.DoesNotContain(result, p => p.FirstName == "John");
+        // John - contains 'o' -> excluded
+        // Jane - no 'o', doesn't start with 'A' -> included
+        // Bob - contains 'o' -> excluded
+        // Alice - starts with 'A' -> excluded
+        // Charlie - no 'o', doesn't start with 'A' -> included
+        Assert.Equal(2, result.Count);
         Assert.Contains(result, p => p.FirstName == "Jane");
-        Assert.Contains(result, p => p.FirstName == "Bob");
-        Assert.Contains(result, p => p.FirstName == "Alice");
         Assert.Contains(result, p => p.FirstName == "Charlie");
     }
 
