@@ -14,6 +14,7 @@ public class ApplyFilterTests
                 FirstName = "John", 
                 LastName = "Doe", 
                 Age = 30,
+                Status = Status.Active,
                 Address = new Address { City = "New York", State = "NY", ZipCode = 10001 }
             },
             new Person 
@@ -21,6 +22,7 @@ public class ApplyFilterTests
                 FirstName = "Jane", 
                 LastName = "Smith", 
                 Age = 25,
+                Status = Status.Inactive,
                 Address = new Address { City = "Los Angeles", State = "CA", ZipCode = 90001 }
             },
             new Person 
@@ -28,6 +30,7 @@ public class ApplyFilterTests
                 FirstName = "Bob", 
                 LastName = "Johnson", 
                 Age = 35,
+                Status = Status.Pending,
                 Address = new Address { City = "Chicago", State = "IL", ZipCode = 60601 }
             },
             new Person 
@@ -35,6 +38,7 @@ public class ApplyFilterTests
                 FirstName = "Alice", 
                 LastName = "Williams", 
                 Age = 28,
+                Status = Status.Active,
                 Address = new Address { City = "Houston", State = "TX", ZipCode = 77001 }
             },
             new Person 
@@ -42,6 +46,7 @@ public class ApplyFilterTests
                 FirstName = "Charlie", 
                 LastName = "Brown", 
                 Age = 30,
+                Status = Status.Inactive,
                 Address = new Address { City = "Phoenix", State = "AZ", ZipCode = 85001 }
             }
         }.AsQueryable();
@@ -825,6 +830,113 @@ public class ApplyFilterTests
 
         // Assert
         Assert.Empty(result);
+    }
+
+    #endregion
+
+    #region Enum Support
+
+    [Fact]
+    public void ApplyFilter_Enum_Eq_StringName()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter("Status eq 'Active'").ToList();
+
+        // Assert
+        Assert.Equal(2, result.Count);
+        Assert.All(result, p => Assert.Equal(Status.Active, p.Status));
+    }
+
+    [Fact]
+    public void ApplyFilter_Enum_Eq_NumericValue()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act - Inactive = 1
+        var result = data.ApplyFilter("Status eq 1").ToList();
+
+        // Assert
+        Assert.Equal(2, result.Count);
+        Assert.All(result, p => Assert.Equal(Status.Inactive, p.Status));
+    }
+
+    [Fact]
+    public void ApplyFilter_Enum_Ne_StringName()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter("Status ne 'Pending'").ToList();
+
+        // Assert
+        Assert.Equal(4, result.Count);
+        Assert.All(result, p => Assert.NotEqual(Status.Pending, p.Status));
+    }
+
+    [Fact]
+    public void ApplyFilter_Enum_In_StringNames()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter("Status in ('Active', 'Pending')").ToList();
+
+        // Assert
+        Assert.Equal(3, result.Count);
+        Assert.Contains(result, p => p.Status == Status.Active);
+        Assert.Contains(result, p => p.Status == Status.Pending);
+    }
+
+    [Fact]
+    public void ApplyFilter_Enum_In_NumericValues()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act - Active = 0, Pending = 2
+        var result = data.ApplyFilter("Status in (0, 2)").ToList();
+
+        // Assert
+        Assert.Equal(3, result.Count);
+        Assert.Contains(result, p => p.Status == Status.Active);
+        Assert.Contains(result, p => p.Status == Status.Pending);
+    }
+
+    [Theory]
+    [InlineData("Status eq 'active'")]
+    [InlineData("Status eq 'ACTIVE'")]
+    [InlineData("Status eq 'Active'")]
+    public void ApplyFilter_Enum_CaseInsensitive(string filter)
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter(filter).ToList();
+
+        // Assert
+        Assert.Equal(2, result.Count);
+        Assert.All(result, p => Assert.Equal(Status.Active, p.Status));
+    }
+
+    [Fact]
+    public void ApplyFilter_Enum_WithLogicalOperator()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter("Status eq 'Active' and Age ge 30").ToList();
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal("John", result[0].FirstName);
     }
 
     #endregion

@@ -304,6 +304,12 @@ internal static class FilterApplier
             return DateTimeOffset.Parse(value, CultureInfo.InvariantCulture);
         }
 
+        // Handle enums (by name or numeric value)
+        if (underlyingType.IsEnum)
+        {
+            return Enum.Parse(underlyingType, value, ignoreCase: true);
+        }
+
         // Handle string
         if (underlyingType == typeof(string))
         {
