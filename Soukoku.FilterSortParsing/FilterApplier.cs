@@ -42,6 +42,9 @@ internal static class FilterApplier
             case FilterExpressionType.Function:
                 return BuildFunctionExpression((FunctionExpression)filterExpression, parameter, entityType);
 
+            case FilterExpressionType.In:
+                return BuildInExpression((InExpression)filterExpression, parameter, entityType);
+
             default:
                 throw new NotSupportedException($"Expression type {filterExpression.Type} is not supported.");
         }
@@ -156,7 +159,7 @@ internal static class FilterApplier
     {
         // OData function call syntax: functionName(property, value)
         // Supported functions: contains, startswith, endswith
-        
+
         if (funcExpr.Arguments.Count != 2)
         {
             throw new InvalidOperationException($"Function '{funcExpr.FunctionName}' expects exactly 2 arguments, but got {funcExpr.Arguments.Count}.");
@@ -195,6 +198,37 @@ internal static class FilterApplier
             default:
                 throw new NotSupportedException($"Function '{funcExpr.FunctionName}' is not supported.");
         }
+    }
+
+    private static Expression BuildInExpression(InExpression inExpr, ParameterExpression parameter, Type entityType)
+    {
+        // Get property expression
+        Expression propertyAccess = parameter;
+        var propertyInfos = ReflectionCache.GetPropertyPath(entityType, inExpr.PropertyName);
+
+        Type currentType = entityType;
+        foreach (var property in propertyInfos)
+        {
+            propertyAccess = Expression.Property(propertyAccess, property);
+            currentType = property.PropertyType;
+        }
+
+        Type propertyType = currentType;
+
+        // Convert all values to the property type and create a typed array
+        var convertedValues = Array.CreateInstance(propertyType, inExpr.Values.Count);
+        for (int i = 0; i < inExpr.Values.Count; i++)
+        {
+            convertedValues.SetValue(ConvertValue(inExpr.Values[i], propertyType), i);
+        }
+
+        // Build: Enumerable.Contains(values, property)
+        var valuesConstant = Expression.Constant(convertedValues);
+        var containsMethod = typeof(Enumerable).GetMethods()
+            .First(m => m.Name == "Contains" && m.GetParameters().Length == 2)
+            .MakeGenericMethod(propertyType);
+
+        return Expression.Call(containsMethod, valuesConstant, propertyAccess);
     }
 
     private static object? ConvertValue(string value, Type targetType)

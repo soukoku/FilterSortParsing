@@ -8,7 +8,8 @@ internal enum FilterExpressionType
     Comparison,
     Logical,
     Not,
-    Function
+    Function,
+    In
 }
 
 internal abstract class FilterExpression
@@ -76,6 +77,21 @@ internal class FunctionExpression : FilterExpression
     }
 
     public override string ToString() => $"{FunctionName}({string.Join(", ", Arguments)})";
+}
+
+internal class InExpression : FilterExpression
+{
+    public string PropertyName { get; }
+    public List<string> Values { get; }
+
+    public InExpression(string propertyName, List<string> values)
+    {
+        Type = FilterExpressionType.In;
+        PropertyName = propertyName;
+        Values = values;
+    }
+
+    public override string ToString() => $"{PropertyName} in ({string.Join(", ", Values)})";
 }
 
 internal class FilterParser
@@ -212,6 +228,12 @@ internal class FilterParser
         // normalize operator to lower-case so downstream switch comparisons are case-sensitive
         operatorName = operatorName.ToLowerInvariant();
 
+        // Handle 'in' operator: property in (value1, value2, ...)
+        if (operatorName == "in")
+        {
+            return ParseInValues(property);
+        }
+
         if (CurrentToken?.Type != FilterTokenType.Value && CurrentToken?.Type != FilterTokenType.Property)
         {
             throw new InvalidOperationException($"Expected value after operator '{operatorName}', but got: {CurrentToken?.Value ?? "end of expression"}");
@@ -220,6 +242,50 @@ internal class FilterParser
         string value = Consume().Value;
 
         return new ComparisonExpression(property, operatorName, value);
+    }
+
+    private FilterExpression ParseInValues(string property)
+    {
+        if (CurrentToken?.Type != FilterTokenType.LeftParenthesis)
+        {
+            throw new InvalidOperationException($"Expected '(' after 'in' operator for property '{property}'.");
+        }
+        Consume(); // Consume '('
+
+        var values = new List<string>();
+
+        // Parse first value
+        if (CurrentToken?.Type == FilterTokenType.Value || CurrentToken?.Type == FilterTokenType.Property)
+        {
+            values.Add(Consume().Value);
+        }
+        else
+        {
+            throw new InvalidOperationException($"Expected value in 'in' list for property '{property}', but got: {CurrentToken?.Value ?? "end of expression"}");
+        }
+
+        // Parse remaining values
+        while (CurrentToken?.Type == FilterTokenType.Comma)
+        {
+            Consume(); // Consume ','
+
+            if (CurrentToken?.Type == FilterTokenType.Value || CurrentToken?.Type == FilterTokenType.Property)
+            {
+                values.Add(Consume().Value);
+            }
+            else
+            {
+                throw new InvalidOperationException($"Expected value after comma in 'in' list for property '{property}', but got: {CurrentToken?.Value ?? "end of expression"}");
+            }
+        }
+
+        if (CurrentToken?.Type != FilterTokenType.RightParenthesis)
+        {
+            throw new InvalidOperationException($"Expected ')' after 'in' list for property '{property}'.");
+        }
+        Consume(); // Consume ')'
+
+        return new InExpression(property, values);
     }
 
     private FilterExpression ParseFunctionCall()

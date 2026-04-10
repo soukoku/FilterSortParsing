@@ -705,4 +705,127 @@ public class ApplyFilterTests
     }
 
     #endregion
+
+    #region In Operator
+
+    [Fact]
+    public void ApplyFilter_In_StringValues_FiltersCorrectly()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter("FirstName in ('John', 'Jane')").ToList();
+
+        // Assert
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, p => p.FirstName == "John");
+        Assert.Contains(result, p => p.FirstName == "Jane");
+    }
+
+    [Fact]
+    public void ApplyFilter_In_IntValues_FiltersCorrectly()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter("Age in (25, 35)").ToList();
+
+        // Assert
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, p => p.Age == 25);
+        Assert.Contains(result, p => p.Age == 35);
+    }
+
+    [Fact]
+    public void ApplyFilter_In_SingleValue_FiltersCorrectly()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter("Age in (30)").ToList();
+
+        // Assert
+        Assert.Equal(2, result.Count);
+        Assert.All(result, p => Assert.Equal(30, p.Age));
+    }
+
+    [Fact]
+    public void ApplyFilter_In_NestedProperty_FiltersCorrectly()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter("Address.State in ('NY', 'CA', 'TX')").ToList();
+
+        // Assert
+        Assert.Equal(3, result.Count);
+        Assert.Contains(result, p => p.Address!.State == "NY");
+        Assert.Contains(result, p => p.Address!.State == "CA");
+        Assert.Contains(result, p => p.Address!.State == "TX");
+    }
+
+    [Fact]
+    public void ApplyFilter_In_WithLogicalOperator_FiltersCorrectly()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter("Age in (25, 30) and FirstName startswith 'J'").ToList();
+
+        // Assert
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, p => p.FirstName == "John");
+        Assert.Contains(result, p => p.FirstName == "Jane");
+    }
+
+    [Fact]
+    public void ApplyFilter_In_WithNot_FiltersCorrectly()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter("not FirstName in ('John', 'Jane')").ToList();
+
+        // Assert
+        Assert.Equal(3, result.Count);
+        Assert.DoesNotContain(result, p => p.FirstName == "John");
+        Assert.DoesNotContain(result, p => p.FirstName == "Jane");
+    }
+
+    [Theory]
+    [InlineData("FirstName IN ('John', 'Jane')")]
+    [InlineData("FirstName In ('John', 'Jane')")]
+    [InlineData("FirstName in ('John', 'Jane')")]
+    public void ApplyFilter_In_CaseInsensitive(string filter)
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter(filter).ToList();
+
+        // Assert
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public void ApplyFilter_In_NoMatchReturnsEmpty()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter("FirstName in ('Nobody', 'Unknown')").ToList();
+
+        // Assert
+        Assert.Empty(result);
+    }
+
+    #endregion
 }

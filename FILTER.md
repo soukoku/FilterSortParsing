@@ -19,6 +19,11 @@
 | `startswith` | Starts with substring | `Name startswith 'J'` |
 | `endswith` | Ends with substring | `Name endswith 'son'` |
 
+### Set Operators
+| Operator | Description | Example |
+|----------|-------------|---------|
+| `in` | Value is in a list | `Age in (25, 30, 35)` |
+
 ### Logical Operators
 | Operator | Description | Example |
 |----------|-------------|---------|
@@ -40,6 +45,13 @@ query.ApplyFilter("Address.City eq 'New York'");
 query.ApplyFilter("FirstName contains 'oh'");
 query.ApplyFilter("FirstName startswith 'J'");
 query.ApplyFilter("LastName endswith 'son'");
+```
+
+### Set Operators
+```csharp
+query.ApplyFilter("Age in (25, 30, 35)");
+query.ApplyFilter("FirstName in ('John', 'Jane')");
+query.ApplyFilter("Address.State in ('NY', 'CA', 'TX')");
 ```
 
 ### Logical Operators
