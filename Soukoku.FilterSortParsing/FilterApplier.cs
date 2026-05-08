@@ -84,6 +84,9 @@ internal static class FilterApplier
             case "contains":
                 return BuildStringMethodExpression(propertyAccess, comparison.Value, "Contains");
 
+            case "like":
+                return BuildStringMethodExpression(propertyAccess, comparison.Value, "Contains");
+
             case "startswith":
                 return BuildStringMethodExpression(propertyAccess, comparison.Value, "StartsWith");
 

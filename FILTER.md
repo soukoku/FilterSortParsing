@@ -11,6 +11,7 @@
 | `ge` | Greater than or equal | `Age ge 30` |
 | `lt` | Less than | `Age lt 30` |
 | `le` | Less than or equal | `Age le 30` |
+| `like` | Contains substring (alias of `contains`) | `Name like 'john'` |
 
 ### String Functions
 | Function | Description | Example |
@@ -43,6 +44,7 @@ query.ApplyFilter("Address.City eq 'New York'");
 ### String Functions
 ```csharp
 query.ApplyFilter("FirstName contains 'oh'");
+query.ApplyFilter("FirstName like 'oh'");
 query.ApplyFilter("FirstName startswith 'J'");
 query.ApplyFilter("LastName endswith 'son'");
 ```

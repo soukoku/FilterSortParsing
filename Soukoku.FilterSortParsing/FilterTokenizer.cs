@@ -246,6 +246,7 @@ internal ref struct FilterTokenizer
                string.Equals(word, "lt", StringComparison.OrdinalIgnoreCase) ||
                string.Equals(word, "le", StringComparison.OrdinalIgnoreCase) ||
                string.Equals(word, "in", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(word, "like", StringComparison.OrdinalIgnoreCase) ||
                string.Equals(word, "contains", StringComparison.OrdinalIgnoreCase) ||
                string.Equals(word, "startswith", StringComparison.OrdinalIgnoreCase) ||
                string.Equals(word, "endswith", StringComparison.OrdinalIgnoreCase);

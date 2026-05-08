@@ -198,6 +198,37 @@ public class ApplyFilterTests
     }
 
     [Fact]
+    public void ApplyFilter_Like_FiltersCorrectly()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter("FirstName like 'oh'").ToList();
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal("John", result[0].FirstName);
+    }
+
+    [Theory]
+    [InlineData("FirstName LIKE 'oh'")]
+    [InlineData("FirstName Like 'oh'")]
+    [InlineData("FirstName like 'oh'")]
+    public void ApplyFilter_Like_CaseInsensitive(string filter)
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter(filter).ToList();
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal("John", result[0].FirstName);
+    }
+
+    [Fact]
     public void ApplyFilter_StartsWith_FiltersCorrectly()
     {
         // Arrange
