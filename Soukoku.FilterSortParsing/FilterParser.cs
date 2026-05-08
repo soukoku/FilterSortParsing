@@ -22,13 +22,15 @@ internal class ComparisonExpression : FilterExpression
     public string PropertyName { get; }
     public string Operator { get; }
     public string Value { get; }
+    public bool ValueIsPropertyReference { get; }
 
-    public ComparisonExpression(string propertyName, string operatorName, string value)
+    public ComparisonExpression(string propertyName, string operatorName, string value, bool valueIsPropertyReference = false)
     {
         Type = FilterExpressionType.Comparison;
         PropertyName = propertyName;
         Operator = operatorName;
         Value = value;
+        ValueIsPropertyReference = valueIsPropertyReference;
     }
 
     public override string ToString() => $"{PropertyName} {Operator} {Value}";
@@ -239,9 +241,10 @@ internal class FilterParser
             throw new InvalidOperationException($"Expected value after operator '{operatorName}', but got: {CurrentToken?.Value ?? "end of expression"}");
         }
 
-        string value = Consume().Value;
+        var valueToken = Consume();
+        string value = valueToken.Value;
 
-        return new ComparisonExpression(property, operatorName, value);
+        return new ComparisonExpression(property, operatorName, value, valueToken.Type == FilterTokenType.Property);
     }
 
     private FilterExpression ParseInValues(string property)

@@ -14,6 +14,7 @@ public class ApplyFilterTests
                 FirstName = "John", 
                 LastName = "Doe", 
                 Age = 30,
+                ComparisonAge = 30,
                 Status = Status.Active,
                 Address = new Address { City = "New York", State = "NY", ZipCode = 10001 }
             },
@@ -22,6 +23,7 @@ public class ApplyFilterTests
                 FirstName = "Jane", 
                 LastName = "Smith", 
                 Age = 25,
+                ComparisonAge = 30,
                 Status = Status.Inactive,
                 Address = new Address { City = "Los Angeles", State = "CA", ZipCode = 90001 }
             },
@@ -30,6 +32,7 @@ public class ApplyFilterTests
                 FirstName = "Bob", 
                 LastName = "Johnson", 
                 Age = 35,
+                ComparisonAge = 30,
                 Status = Status.Pending,
                 Address = new Address { City = "Chicago", State = "IL", ZipCode = 60601 }
             },
@@ -38,6 +41,7 @@ public class ApplyFilterTests
                 FirstName = "Alice", 
                 LastName = "Williams", 
                 Age = 28,
+                ComparisonAge = 30,
                 Status = Status.Active,
                 Address = new Address { City = "Houston", State = "TX", ZipCode = 77001 }
             },
@@ -46,6 +50,7 @@ public class ApplyFilterTests
                 FirstName = "Charlie", 
                 LastName = "Brown", 
                 Age = 30,
+                ComparisonAge = 25,
                 Status = Status.Inactive,
                 Address = new Address { City = "Phoenix", State = "AZ", ZipCode = 85001 }
             }
@@ -937,6 +942,77 @@ public class ApplyFilterTests
         // Assert
         Assert.Single(result);
         Assert.Equal("John", result[0].FirstName);
+    }
+
+    #endregion
+
+    #region Property to Property Comparison
+
+    [Fact]
+    public void ApplyFilter_PropertyToProperty_Eq_FiltersCorrectly()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter("Age eq ComparisonAge").ToList();
+
+        // Assert
+        Assert.Single(result);
+        Assert.Contains(result, p => p.FirstName == "John");
+    }
+
+    [Fact]
+    public void ApplyFilter_PropertyToProperty_Gt_FiltersCorrectly()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter("Age gt ComparisonAge").ToList();
+
+        // Assert
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, p => p.FirstName == "Bob");
+        Assert.Contains(result, p => p.FirstName == "Charlie");
+    }
+
+    [Fact]
+    public void ApplyFilter_PropertyToProperty_WithLogicalOperator_FiltersCorrectly()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter("Age gt ComparisonAge and Status eq 'Pending'").ToList();
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal("Bob", result[0].FirstName);
+    }
+
+    [Fact]
+    public void ApplyFilter_PropertyToProperty_WithNot_FiltersCorrectly()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyFilter("not Age eq ComparisonAge").ToList();
+
+        // Assert
+        Assert.Equal(4, result.Count);
+        Assert.DoesNotContain(result, p => p.FirstName == "John");
+    }
+
+    [Fact]
+    public void ApplyFilter_PropertyToProperty_TypeMismatch_ThrowsException()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act & Assert
+        Assert.Throws<System.InvalidOperationException>(() => data.ApplyFilter("Age eq FirstName").ToList());
     }
 
     #endregion

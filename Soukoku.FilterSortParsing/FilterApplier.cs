@@ -52,18 +52,13 @@ internal static class FilterApplier
 
     private static Expression BuildComparisonExpression(ComparisonExpression comparison, ParameterExpression parameter, Type entityType)
     {
-        // Get property expression
-        Expression propertyAccess = parameter;
-        var propertyInfos = ReflectionCache.GetPropertyPath(entityType, comparison.PropertyName);
+        BuildPropertyAccess(parameter, entityType, comparison.PropertyName, out var propertyAccess, out var propertyType);
 
-        Type currentType = entityType;
-        foreach (var property in propertyInfos)
+        if (comparison.ValueIsPropertyReference)
         {
-            propertyAccess = Expression.Property(propertyAccess, property);
-            currentType = property.PropertyType;
+            BuildPropertyAccess(parameter, entityType, comparison.Value, out var rightPropertyAccess, out var rightPropertyType);
+            return BuildPropertyToPropertyComparison(comparison.Operator, propertyAccess, propertyType, rightPropertyAccess, rightPropertyType);
         }
-
-        Type propertyType = currentType;
 
         // Build comparison based on operator
         switch (comparison.Operator)
@@ -98,6 +93,40 @@ internal static class FilterApplier
             default:
                 throw new NotSupportedException($"Operator '{comparison.Operator}' is not supported.");
         }
+    }
+
+    private static Expression BuildPropertyToPropertyComparison(string operatorName, Expression leftPropertyAccess, Type leftPropertyType, Expression rightPropertyAccess, Type rightPropertyType)
+    {
+        if (leftPropertyType != rightPropertyType)
+        {
+            throw new InvalidOperationException($"Cannot compare properties of different types: '{leftPropertyType.Name}' and '{rightPropertyType.Name}'.");
+        }
+
+        return operatorName switch
+        {
+            "eq" => Expression.Equal(leftPropertyAccess, rightPropertyAccess),
+            "ne" => Expression.NotEqual(leftPropertyAccess, rightPropertyAccess),
+            "gt" => Expression.GreaterThan(leftPropertyAccess, rightPropertyAccess),
+            "ge" => Expression.GreaterThanOrEqual(leftPropertyAccess, rightPropertyAccess),
+            "lt" => Expression.LessThan(leftPropertyAccess, rightPropertyAccess),
+            "le" => Expression.LessThanOrEqual(leftPropertyAccess, rightPropertyAccess),
+            _ => throw new NotSupportedException($"Operator '{operatorName}' is not supported for property-to-property comparison.")
+        };
+    }
+
+    private static void BuildPropertyAccess(ParameterExpression parameter, Type entityType, string propertyPath, out Expression propertyAccess, out Type propertyType)
+    {
+        propertyAccess = parameter;
+        var propertyInfos = ReflectionCache.GetPropertyPath(entityType, propertyPath);
+
+        Type currentType = entityType;
+        foreach (var property in propertyInfos)
+        {
+            propertyAccess = Expression.Property(propertyAccess, property);
+            currentType = property.PropertyType;
+        }
+
+        propertyType = currentType;
     }
 
     private static Expression BuildEqualExpression(Expression propertyAccess, string value, Type propertyType)
