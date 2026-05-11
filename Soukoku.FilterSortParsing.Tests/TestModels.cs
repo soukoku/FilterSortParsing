@@ -14,6 +14,7 @@ public class Person
     public int Age { get; set; }
     public int ComparisonAge { get; set; }
     public Status Status { get; set; }
+    public DateTime Created { get; set; }
     public Address? Address { get; set; }
 }
 

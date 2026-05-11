@@ -16,6 +16,7 @@ public class ApplyFilterTests
                 Age = 30,
                 ComparisonAge = 30,
                 Status = Status.Active,
+                Created = new System.DateTime(2023, 1, 1, 0, 0, 0, System.DateTimeKind.Utc),
                 Address = new Address { City = "New York", State = "NY", ZipCode = 10001 }
             },
             new Person 
@@ -25,6 +26,7 @@ public class ApplyFilterTests
                 Age = 25,
                 ComparisonAge = 30,
                 Status = Status.Inactive,
+                Created = new System.DateTime(2023, 1, 2, 0, 0, 0, System.DateTimeKind.Utc),
                 Address = new Address { City = "Los Angeles", State = "CA", ZipCode = 90001 }
             },
             new Person 
@@ -34,6 +36,7 @@ public class ApplyFilterTests
                 Age = 35,
                 ComparisonAge = 30,
                 Status = Status.Pending,
+                Created = new System.DateTime(2023, 1, 3, 0, 0, 0, System.DateTimeKind.Utc),
                 Address = new Address { City = "Chicago", State = "IL", ZipCode = 60601 }
             },
             new Person 
@@ -43,6 +46,7 @@ public class ApplyFilterTests
                 Age = 28,
                 ComparisonAge = 30,
                 Status = Status.Active,
+                Created = new System.DateTime(2023, 1, 4, 0, 0, 0, System.DateTimeKind.Utc),
                 Address = new Address { City = "Houston", State = "TX", ZipCode = 77001 }
             },
             new Person 
@@ -52,6 +56,7 @@ public class ApplyFilterTests
                 Age = 30,
                 ComparisonAge = 25,
                 Status = Status.Inactive,
+                Created = new System.DateTime(2023, 1, 5, 0, 0, 0, System.DateTimeKind.Utc),
                 Address = new Address { City = "Phoenix", State = "AZ", ZipCode = 85001 }
             }
         }.AsQueryable();
@@ -117,6 +122,53 @@ public class ApplyFilterTests
         // Assert
         Assert.Single(result);
         Assert.Equal("John", result[0].FirstName);
+    }
+
+    #endregion
+
+    #region DateTime Epoch Support
+
+    [Fact]
+    public void ApplyFilter_DateTime_EpochSeconds_FiltersCorrectly()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act - 2023-01-01 UTC -> epoch seconds 1672531200
+        var result = data.ApplyFilter("Created eq 1672531200").ToList();
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal("John", result[0].FirstName);
+    }
+
+    [Fact]
+    public void ApplyFilter_DateTime_String_FiltersCorrectly()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act - textual date
+        var result = data.ApplyFilter("Created eq '2023-01-02'").ToList();
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal("Jane", result[0].FirstName);
+    }
+
+    [Fact]
+    public void ApplyFilter_DateTime_In_List_WithEpochs()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act - include 2023-01-01 and 2023-01-03
+        var result = data.ApplyFilter("Created in (1672531200, 1672704000)").ToList();
+
+        // Assert
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, p => p.FirstName == "John");
+        Assert.Contains(result, p => p.FirstName == "Bob");
     }
 
     #endregion

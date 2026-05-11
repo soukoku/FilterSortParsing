@@ -64,6 +64,16 @@ var result = people
 ### String Functions
 - `contains`, `startswith`, `endswith`
 
+### Date/Time Values
+
+- Date/time properties accept either textual date values (quoted strings) or numeric Unix epoch seconds (unquoted integers).
+  - Quoted/text values are parsed using DateTime.Parse / DateTimeOffset.Parse (for example: `Created eq '2023-01-02'`).
+  - Unquoted integer values are interpreted as Unix epoch seconds (seconds since 1970-01-01T00:00:00Z) and converted to UTC DateTime/DateTimeOffset. Example: `Created eq 1672531200`.
+  - The `in` operator also accepts epoch values: `Created in (1672531200, 1672704000)`.
+
+- Important: this library currently supports epoch seconds only (not milliseconds). Use quoted ISO strings or epoch seconds to avoid ambiguity.
+
+
 ### Logical
 - `and`, `or`, `not`
 - `( )` - Grouping and precedence

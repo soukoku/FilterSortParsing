@@ -324,15 +324,36 @@ internal static class FilterApplier
             return Guid.Parse(value);
         }
 
-        // Handle DateTime
-        if (underlyingType == typeof(DateTime))
+        // Handle DateTime and DateTimeOffset
+        // Support epoch seconds (integer numeric token) for backward compatibility.
+        if (underlyingType == typeof(DateTime) || underlyingType == typeof(DateTimeOffset))
         {
-            return DateTime.Parse(value, CultureInfo.InvariantCulture);
-        }
+            // If the incoming token is an integer epoch seconds value, convert from Unix epoch seconds.
+            if (long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out long seconds))
+            {
+                try
+                {
+                    var dto = DateTimeOffset.FromUnixTimeSeconds(seconds);
+                    if (underlyingType == typeof(DateTimeOffset))
+                    {
+                        return dto;
+                    }
 
-        // Handle DateTimeOffset
-        if (underlyingType == typeof(DateTimeOffset))
-        {
+                    // Return UTC DateTime for DateTime target
+                    return dto.UtcDateTime;
+                }
+                catch (ArgumentOutOfRangeException ex)
+                {
+                    throw new InvalidOperationException($"Epoch seconds value '{value}' is out of range for DateTime/DateTimeOffset.", ex);
+                }
+            }
+
+            // Fallback to parsing textual date representations (quoted strings)
+            if (underlyingType == typeof(DateTime))
+            {
+                return DateTime.Parse(value, CultureInfo.InvariantCulture);
+            }
+
             return DateTimeOffset.Parse(value, CultureInfo.InvariantCulture);
         }
 
