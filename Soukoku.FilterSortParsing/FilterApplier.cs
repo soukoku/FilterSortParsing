@@ -143,8 +143,21 @@ internal static class FilterApplier
         Func<Expression, Expression, BinaryExpression> comparisonFactory)
     {
         var constantValue = ConvertValue(value, propertyType);
-        var constant = Expression.Constant(constantValue, propertyType);
-        return comparisonFactory(propertyAccess, constant);
+
+        // If comparing against enum, compare using the underlying numeric type
+        if (propertyType.IsEnum)
+        {
+            var underlyingType = Enum.GetUnderlyingType(propertyType);
+            var convertedProperty = Expression.Convert(propertyAccess, underlyingType);
+
+            // Convert the parsed enum value to underlying numeric type
+            var underlyingConstantValue = Convert.ChangeType(constantValue, underlyingType, CultureInfo.InvariantCulture);
+            var constant = Expression.Constant(underlyingConstantValue, underlyingType);
+            return comparisonFactory(convertedProperty, constant);
+        }
+
+        var constantObj = Expression.Constant(constantValue, propertyType);
+        return comparisonFactory(propertyAccess, constantObj);
     }
 
     private static Expression BuildStringMethodExpression(Expression propertyAccess, string value, string methodName)

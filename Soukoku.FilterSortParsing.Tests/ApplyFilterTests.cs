@@ -126,6 +126,90 @@ public class ApplyFilterTests
 
     #endregion
 
+    #region Enum Numeric Comparisons
+
+    [Fact]
+    public void ApplyFilter_Enum_Ge_NumericValue()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act - Status ge 1 -> Inactive(1) and Pending(2)
+        var result = data.ApplyFilter("Status ge 1").ToList();
+
+        // Assert
+        Assert.Equal(3, result.Count);
+        Assert.Contains(result, p => p.FirstName == "Jane");
+        Assert.Contains(result, p => p.FirstName == "Bob");
+        Assert.Contains(result, p => p.FirstName == "Charlie");
+    }
+
+    [Fact]
+    public void ApplyFilter_Enum_Le_NumericValue()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act - Status le 1 -> Active(0) and Inactive(1)
+        var result = data.ApplyFilter("Status le 1").ToList();
+
+        // Assert
+        Assert.Equal(4, result.Count);
+        Assert.Contains(result, p => p.FirstName == "John");
+        Assert.Contains(result, p => p.FirstName == "Jane");
+        Assert.Contains(result, p => p.FirstName == "Alice");
+        Assert.Contains(result, p => p.FirstName == "Charlie");
+    }
+
+    [Fact]
+    public void ApplyFilter_Enum_Ne_NumericValue()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act - Status ne 1 -> exclude Inactive
+        var result = data.ApplyFilter("Status ne 1").ToList();
+
+        // Assert
+        Assert.Equal(3, result.Count);
+        Assert.Contains(result, p => p.FirstName == "John");
+        Assert.Contains(result, p => p.FirstName == "Bob");
+        Assert.Contains(result, p => p.FirstName == "Alice");
+    }
+
+    [Fact]
+    public void ApplyFilter_Enum_Gt_StringName()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act - Status gt 'Inactive' -> Pending (value 2)
+        var result = data.ApplyFilter("Status gt 'Inactive'").ToList();
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal("Bob", result[0].FirstName);
+    }
+
+    [Fact]
+    public void ApplyFilter_Enum_Lt_NumericValue()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act - Status lt 2 -> Active(0) and Inactive(1)
+        var result = data.ApplyFilter("Status lt 2").ToList();
+
+        // Assert
+        Assert.Equal(4, result.Count);
+        Assert.Contains(result, p => p.FirstName == "John");
+        Assert.Contains(result, p => p.FirstName == "Jane");
+        Assert.Contains(result, p => p.FirstName == "Alice");
+        Assert.Contains(result, p => p.FirstName == "Charlie");
+    }
+
+    #endregion
+
     #region DateTime Epoch Support
 
     [Fact]
