@@ -1,7 +1,4 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 
 namespace Soukoku.FilterSortParsing;
@@ -9,12 +6,12 @@ namespace Soukoku.FilterSortParsing;
 internal static class ReflectionCache
 {
     private static readonly ConcurrentDictionary<MethodCacheKey, MethodInfo> _queryableMethodCache = new();
-    private static readonly ConcurrentDictionary<PropertyCacheKey, PropertyInfo[]> _propertyPathCache = new();
+    private static readonly ConcurrentDictionary<PropertyCacheKey, IEnumerable<PropertyInfo>> _propertyPathCache = new();
     
     // Cache common string method lookups
-    private static readonly MethodInfo _containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) })!;
-    private static readonly MethodInfo _startsWithMethod = typeof(string).GetMethod("StartsWith", new[] { typeof(string) })!;
-    private static readonly MethodInfo _endsWithMethod = typeof(string).GetMethod("EndsWith", new[] { typeof(string) })!;
+    private static readonly MethodInfo _containsMethod = typeof(string).GetMethod("Contains", [typeof(string)])!;
+    private static readonly MethodInfo _startsWithMethod = typeof(string).GetMethod("StartsWith", [typeof(string)])!;
+    private static readonly MethodInfo _endsWithMethod = typeof(string).GetMethod("EndsWith", [typeof(string)])!;
 
     public static MethodInfo GetQueryableMethod(string methodName, Type sourceType, Type propertyType)
     {
@@ -39,32 +36,21 @@ internal static class ReflectionCache
         };
     }
 
-    public static PropertyInfo[] GetPropertyPath(Type rootType, string propertyPath)
+    public static IEnumerable<PropertyInfo> GetPropertyPath(Type rootType, string propertyPath)
     {
         var cacheKey = new PropertyCacheKey(rootType, propertyPath);
         return _propertyPathCache.GetOrAdd(cacheKey, _ =>
         {
-            // Fast path: no dots (most common case)
-            int firstDot = propertyPath.IndexOf('.');
-            if (firstDot == -1)
-            {
-                var prop = rootType.GetProperty(propertyPath, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-                if (prop == null)
-                {
-                    throw new ArgumentException($"Property '{propertyPath}' not found on type '{rootType.Name}'.");
-                }
-                return new[] { prop };
-            }
-
-            // Nested path: use span-based iteration to avoid Split allocation
             var list = new List<PropertyInfo>(2);
             Type current = rootType;
             ReadOnlySpan<char> remaining = propertyPath.AsSpan();
             
             while (!remaining.IsEmpty)
             {
-                int dotIndex = remaining.IndexOf('.');
-                ReadOnlySpan<char> part = dotIndex >= 0 ? remaining.Slice(0, dotIndex) : remaining;
+                int splitIdx = remaining.IndexOf('.');
+                if (splitIdx < 0) splitIdx = remaining.IndexOf('/');
+
+                ReadOnlySpan<char> part = splitIdx >= 0 ? remaining.Slice(0, splitIdx) : remaining;
                 
                 // GetProperty requires string, so allocate only the segment
                 var prop = current.GetProperty(part.ToString(), BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
@@ -75,9 +61,9 @@ internal static class ReflectionCache
                 
                 list.Add(prop);
                 current = prop.PropertyType;
-                remaining = dotIndex >= 0 ? remaining.Slice(dotIndex + 1) : ReadOnlySpan<char>.Empty;
+                remaining = splitIdx >= 0 ? remaining.Slice(splitIdx + 1) : ReadOnlySpan<char>.Empty;
             }
-            return list.ToArray();
+            return list;
         });
     }
 

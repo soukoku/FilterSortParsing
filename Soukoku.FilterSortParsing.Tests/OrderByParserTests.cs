@@ -127,7 +127,7 @@ public class OrderByParserTests
     }
 
     [Fact]
-    public void Parse_NestedProperty_PreservesPropertyPath()
+    public void Parse_Dot_NestedProperty_PreservesPropertyPath()
     {
         // Arrange & Act
         var result = OrderByParser.Parse("Address.City desc");
@@ -135,6 +135,19 @@ public class OrderByParserTests
         // Assert
         Assert.Single(result);
         Assert.Equal("Address.City", result[0].PropertyName);
+        Assert.True(result[0].IsDescending);
+    }
+
+
+    [Fact]
+    public void Parse_Slash_NestedProperty_PreservesPropertyPath()
+    {
+        // Arrange & Act
+        var result = OrderByParser.Parse("Address/City desc");
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal("Address/City", result[0].PropertyName);
         Assert.True(result[0].IsDescending);
     }
 

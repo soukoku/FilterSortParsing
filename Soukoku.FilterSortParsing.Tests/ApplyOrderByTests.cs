@@ -138,7 +138,7 @@ public class ApplyOrderByTests
     }
 
     [Fact]
-    public void ApplyOrderBy_NestedProperty_OrdersCorrectly()
+    public void ApplyOrderBy_Dot_NestedProperty_OrdersCorrectly()
     {
         // Arrange
         var data = GetTestData();
@@ -154,13 +154,52 @@ public class ApplyOrderByTests
         Assert.Equal("Phoenix", result[4].Address.City);
     }
 
+    [Fact]
+    public void ApplyOrderBy_Slash_NestedProperty_OrdersCorrectly()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyOrderBy("Address/City").ToList();
+
+        // Assert
+        Assert.Equal("Chicago", result[0].Address.City);
+        Assert.Equal("Houston", result[1].Address.City);
+        Assert.Equal("Los Angeles", result[2].Address.City);
+        Assert.Equal("New York", result[3].Address.City);
+        Assert.Equal("Phoenix", result[4].Address.City);
+    }
+
     [Theory]
     [InlineData("address.city")]
     [InlineData("Address.City")]
     [InlineData("ADDRESS.CITY")]
     [InlineData("Address.city")]
     [InlineData("address.City")]
-    public void ApplyOrderBy_NestedProperty_CaseInsensitive(string propertyPath)
+    public void ApplyOrderBy_Dot_NestedProperty_CaseInsensitive(string propertyPath)
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act
+        var result = data.ApplyOrderBy(propertyPath).ToList();
+
+        // Assert - Should order by city regardless of case
+        Assert.Equal("Chicago", result[0].Address.City);
+        Assert.Equal("Houston", result[1].Address.City);
+        Assert.Equal("Los Angeles", result[2].Address.City);
+        Assert.Equal("New York", result[3].Address.City);
+        Assert.Equal("Phoenix", result[4].Address.City);
+    }
+
+    [Theory]
+    [InlineData("address/city")]
+    [InlineData("Address/City")]
+    [InlineData("ADDRESS/CITY")]
+    [InlineData("Address/city")]
+    [InlineData("address/City")]
+    public void ApplyOrderBy_Slash_NestedProperty_CaseInsensitive(string propertyPath)
     {
         // Arrange
         var data = GetTestData();
@@ -221,13 +260,23 @@ public class ApplyOrderByTests
     }
 
     [Fact]
-    public void ApplyOrderBy_InvalidNestedProperty_ThrowsException()
+    public void ApplyOrderBy_Invalid_Dot_NestedProperty_ThrowsException()
     {
         // Arrange
         var data = GetTestData();
 
         // Act & Assert
         Assert.Throws<System.ArgumentException>(() => data.ApplyOrderBy("Address.InvalidProperty").ToList());
+    }
+
+    [Fact]
+    public void ApplyOrderBy_Invalid_Slash_NestedProperty_ThrowsException()
+    {
+        // Arrange
+        var data = GetTestData();
+
+        // Act & Assert
+        Assert.Throws<System.ArgumentException>(() => data.ApplyOrderBy("Address/InvalidProperty").ToList());
     }
 
     [Theory]
